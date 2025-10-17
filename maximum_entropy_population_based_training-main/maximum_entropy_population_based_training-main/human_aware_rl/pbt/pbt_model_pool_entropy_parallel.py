@@ -150,7 +150,7 @@ def my_config():
 
     TOTAL_STEPS_PER_AGENT = 1.5e7 if not LOCAL_TESTING else 1e4
 
-    POPULATION_SIZE = 4
+    POPULATION_SIZE = 16
 
     ITER_PER_SELECTION = POPULATION_SIZE # How many pairings and model training updates before the worst model is overwritten
 
@@ -388,15 +388,26 @@ def pbt_one_run(params, seed, population_type):
 
     annealer = LinearAnnealer(horizon=params["REW_SHAPING_HORIZON"])
 
-    # AGENT POPULATION INITIALIZATION
-    population_size = params["POPULATION_SIZE"]
-    pbt_population = []
-    pbt_agent_names = ['agent' + str(i) for i in range(population_size)]
-    for agent_name in pbt_agent_names:
-        agent = PBTAgent(agent_name, params, gym_env=gym_env)
-        print(f'Initialized {agent_name}')
-        
-        pbt_population.append(agent)
+    if(population_type=="achiever"):
+        gamma_array = [params["GAMMA"]-i*0.03 for i in range(params["POPULATION_SIZE"])]
+        # AGENT POPULATION INITIALIZATION
+        population_size = params["POPULATION_SIZE"]
+        pbt_population = []
+        pbt_agent_names = ['agent' + str(i) for i in range(population_size)]
+        for i, agent_name in enumerate(pbt_agent_names):
+            params["GAMMA"] = gamma_array[i]
+            agent = PBTAgent(agent_name, params, gym_env=gym_env)
+            print(f'Initialized {agent_name}')    
+            pbt_population.append(agent)
+    else:
+        # AGENT POPULATION INITIALIZATION
+        population_size = params["POPULATION_SIZE"]
+        pbt_population = []
+        pbt_agent_names = ['agent' + str(i) for i in range(population_size)]
+        for agent_name in pbt_agent_names:
+            agent = PBTAgent(agent_name, params, gym_env=gym_env)
+            print(f'Initialized {agent_name}')    
+            pbt_population.append(agent)
 
     print("Initialized agent models")
 
