@@ -388,6 +388,7 @@ def pbt_one_run(params, seed, population_type):
 
     annealer = LinearAnnealer(horizon=params["REW_SHAPING_HORIZON"])
 
+    #######################################################################
     if(population_type=="achiever"):
         gamma_array = [params["GAMMA"]-i*0.03 for i in range(params["POPULATION_SIZE"])]
         # AGENT POPULATION INITIALIZATION
@@ -408,7 +409,7 @@ def pbt_one_run(params, seed, population_type):
             agent = PBTAgent(agent_name, params, gym_env=gym_env)
             print(f'Initialized {agent_name}')    
             pbt_population.append(agent)
-
+    #######################################################################
     print("Initialized agent models")
 
     all_pairs = []
@@ -483,6 +484,14 @@ def pbt_one_run(params, seed, population_type):
                 agent_pair = AgentPair(pbt_agent.get_agent(), pbt_agent_other.get_agent())
                 trajs = overcooked_env.get_rollouts(agent_pair, params["NUM_SELECTION_GAMES"], reward_shaping=reward_shaping_param)
                 dense_rews, sparse_rews, lens = trajs["ep_returns"], trajs["ep_returns_sparse"], trajs["ep_lengths"]
+
+                #######################################################################
+                if(population_type = "dominance"):
+                    dense_rews  = dense_rews - 1
+                    sparse_rews = sparse_rews - 1
+
+                #######################################################################
+                
                 rew_per_step = np.sum(dense_rews) / np.sum(lens)
                 avg_ep_returns_dict[i].append(rew_per_step)
                 avg_ep_returns_sparse_dict[i].append(sparse_rews)
