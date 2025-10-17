@@ -508,6 +508,8 @@ def pbt_one_run(params, seed, population_type):
 @ex.automain
 def run_pbt(params):
     population_type = "achiever"
+    population_type = "dominance"
+
     create_dir_if_not_exists(params["SAVE_DIR"])
     save_dict_to_file(params, params["SAVE_DIR"] + "config")
     for seed in params["SEEDS"]:
