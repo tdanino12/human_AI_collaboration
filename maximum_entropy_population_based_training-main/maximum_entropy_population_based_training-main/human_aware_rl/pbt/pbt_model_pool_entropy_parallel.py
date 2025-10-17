@@ -363,7 +363,7 @@ def padded_all_scenario():
     LR = 5e-4
     REW_SHAPING_HORIZON = 1e7
 
-def pbt_one_run(params, seed):
+def pbt_one_run(params, seed, population_type):
     # Iterating noptepochs over same batch data but shuffled differently
     # dividing each batch in `nminibatches` and doing a gradient step for each one
     create_dir_if_not_exists(params["SAVE_DIR"])
@@ -496,10 +496,11 @@ def pbt_one_run(params, seed):
 
 @ex.automain
 def run_pbt(params):
+    population_type = "achiever"
     create_dir_if_not_exists(params["SAVE_DIR"])
     save_dict_to_file(params, params["SAVE_DIR"] + "config")
     for seed in params["SEEDS"]:
         set_global_seed(seed)
         curr_seed_params = params.copy()
         curr_seed_params["SAVE_DIR"] += "seed_{}/".format(seed)
-        pbt_one_run(curr_seed_params, seed)
+        pbt_one_run(curr_seed_params, seed, population_type)
