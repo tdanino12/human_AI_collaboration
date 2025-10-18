@@ -138,7 +138,7 @@ class OvercookedEnv(object):
         self.reset()
         return successor_state, done
 
-    def run_agents(self, agent_pair, include_final_state=False, display=False, display_until=np.Inf):
+    def run_agents(self, agent_pair, include_final_state=False, display=False, display_until=np.Inf, population_class="dominance", agent_num=0):
         """
         Trajectory returned will a list of state-action pairs (s_t, joint_a_t, r_t, done_t).
         """
@@ -157,6 +157,12 @@ class OvercookedEnv(object):
                 break
 
             s_tp1, r_t, done, info = self.step(a_t)
+            ###############################################################################
+            if(population_class=="dominance"):
+                r_t = r_t - agent_num-0.01
+                if(a_t==4):  # if the agent performed interact action
+                    r_t = r_t + agent_num*0.02
+            ###############################################################################
             trajectory.append((s_t, a_t, r_t, done))
 
             if display and self.t < display_until:
@@ -170,7 +176,7 @@ class OvercookedEnv(object):
 
         return np.array(trajectory), self.t, self.cumulative_sparse_rewards, self.cumulative_shaped_rewards
 
-    def get_rollouts(self, agent_pair, num_games, display=False, final_state=False, agent_idx=0, reward_shaping=0.0, display_until=np.Inf, info=True):
+    def get_rollouts(self, agent_pair, num_games, display=False, final_state=False, agent_idx=0, reward_shaping=0.0, display_until=np.Inf, info=True, population_class="dominance", agent_num=0):
         """
         Simulate `num_games` number rollouts with the current agent_pair and returns processed 
         trajectories.
@@ -209,7 +215,7 @@ class OvercookedEnv(object):
         for _ in tqdm.trange(num_games):
             agent_pair.set_mdp(self.mdp)
 
-            trajectory, time_taken, tot_rews_sparse, tot_rews_shaped = self.run_agents(agent_pair, display=display, include_final_state=final_state, display_until=display_until)
+            trajectory, time_taken, tot_rews_sparse, tot_rews_shaped = self.run_agents(agent_pair, display=display, include_final_state=final_state, display_until=display_until,  population_class=population_class, agent_num=agent_num)
             obs, actions, rews, dones = trajectory.T[0], trajectory.T[1], trajectory.T[2], trajectory.T[3]
             trajectories["ep_observations"].append(obs)
             trajectories["ep_actions"].append(actions)
