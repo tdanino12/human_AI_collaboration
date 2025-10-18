@@ -485,7 +485,13 @@ def pbt_one_run(params, seed, population_type):
                 print("Evaluating agent {} and {}".format(i, i))
                 pbt_agent_other = pbt_population[i]
                 agent_pair = AgentPair(pbt_agent.get_agent(), pbt_agent_other.get_agent())
-                trajs = overcooked_env.get_rollouts(agent_pair, params["NUM_SELECTION_GAMES"], reward_shaping=reward_shaping_param)
+                
+                #######################################################################
+                #trajs = overcooked_env.get_rollouts(agent_pair, params["NUM_SELECTION_GAMES"], reward_shaping=reward_shaping_param)
+                # Added "population_type" as input to the function
+                trajs = overcooked_env.get_rollouts(agent_pair, params["NUM_SELECTION_GAMES"], reward_shaping=reward_shaping_param, population_type)
+                #######################################################################
+                
                 dense_rews, sparse_rews, lens = trajs["ep_returns"], trajs["ep_returns_sparse"], trajs["ep_lengths"]
 
                 #######################################################################
