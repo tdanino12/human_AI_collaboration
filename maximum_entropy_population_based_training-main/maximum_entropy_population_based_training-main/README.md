@@ -36,3 +36,13 @@ Citation of the paper:
 ## Licence
 
 MIT
+
+################################################################
+
+Files that were changed in the original code:
+1. maximum_entropy_population_based_training-main/maximum_entropy_population_based_training-main/human_aware_rl/pbt
+/pbt_model_pool_entropy_parallel.py
+2. /maximum_entropy_population_based_training-main/maximum_entropy_population_based_training-main/overcooked_ai/overcooked_ai_py/mdp
+/overcooked_env.py
+
+
