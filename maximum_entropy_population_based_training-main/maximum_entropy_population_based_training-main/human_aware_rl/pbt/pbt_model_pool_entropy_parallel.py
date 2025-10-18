@@ -493,13 +493,6 @@ def pbt_one_run(params, seed, population_type):
                 #######################################################################
                 
                 dense_rews, sparse_rews, lens = trajs["ep_returns"], trajs["ep_returns_sparse"], trajs["ep_lengths"]
-
-                #######################################################################
-                if(population_type = "dominance"):
-                    dense_rews  = dense_rews - 1
-                    sparse_rews = sparse_rews - 1
-
-                #######################################################################
                 
                 rew_per_step = np.sum(dense_rews) / np.sum(lens)
                 avg_ep_returns_dict[i].append(rew_per_step)
