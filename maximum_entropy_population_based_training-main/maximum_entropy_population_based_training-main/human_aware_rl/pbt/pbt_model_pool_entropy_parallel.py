@@ -488,8 +488,8 @@ def pbt_one_run(params, seed, population_type):
                 
                 #######################################################################
                 #trajs = overcooked_env.get_rollouts(agent_pair, params["NUM_SELECTION_GAMES"], reward_shaping=reward_shaping_param)
-                # Added "population_type" as input to the function
-                trajs = overcooked_env.get_rollouts(agent_pair, params["NUM_SELECTION_GAMES"], reward_shaping=reward_shaping_param, population_type)
+                # Added "population_type" and agent index (i) as inputs to the function.
+                trajs = overcooked_env.get_rollouts(agent_pair, params["NUM_SELECTION_GAMES"], reward_shaping=reward_shaping_param, population_type, i)
                 #######################################################################
                 
                 dense_rews, sparse_rews, lens = trajs["ep_returns"], trajs["ep_returns_sparse"], trajs["ep_lengths"]
