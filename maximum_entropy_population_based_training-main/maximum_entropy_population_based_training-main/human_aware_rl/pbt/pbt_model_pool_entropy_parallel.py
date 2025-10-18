@@ -390,6 +390,9 @@ def pbt_one_run(params, seed, population_type):
 
     #######################################################################
     if(population_type=="achiever"):
+        '''
+        Creating a population of agent that differ by their "GAMMA" parameter.
+        '''
         gamma_array = [params["GAMMA"]-i*0.03 for i in range(params["POPULATION_SIZE"])]
         # AGENT POPULATION INITIALIZATION
         population_size = params["POPULATION_SIZE"]
