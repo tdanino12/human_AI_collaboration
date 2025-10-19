@@ -26,7 +26,8 @@ from human_aware_rl.baselines_utils import create_model, get_vectorized_gym_env,
 
 ######################################################################################################
 '''
-MI estimation (the code is based on PMIC)
+MI estimation (the code is based on PMIC: : Improving Multi-Agent Reinforcement Learning with Progressive Mutual Information Collaboration)
+https://github.com/yeshenpy/PMIC/tree/main
 '''
 class MI_estimator():
     def get_negative_expectation(self, q_samples, measure, average=True):
