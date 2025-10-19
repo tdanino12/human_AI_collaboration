@@ -24,6 +24,122 @@ from human_aware_rl.utils import create_dir_if_not_exists, delete_dir_if_exists,
 from human_aware_rl.baselines_utils import create_model, get_vectorized_gym_env, update_model, get_agent_from_model, save_baselines_model, overwrite_model, load_baselines_model, LinearAnnealer
 
 
+######################################################################################################
+'''
+MI estimation (the code is based on PMIC)
+'''
+class MI_estimator():
+    def get_negative_expectation(self, q_samples, measure, average=True):
+        log_2 = math.log(2.)
+        if measure == 'GAN':
+            Eq = F.softplus(-q_samples) + q_samples
+        elif measure == 'JSD':
+            #
+            Eq = F.softplus(-q_samples) + q_samples - log_2  # Note JSD will be shifted
+            #Eq = F.softplus(q_samples) #+ q_samples - log_2
+        elif measure == 'X2':
+            Eq = -0.5 * ((torch.sqrt(q_samples ** 2) + 1.) ** 2)
+        elif measure == 'KL':
+            q_samples = torch.clamp(q_samples,-1e6,9.5)
+            
+            #print("neg q samples ",q_samples.cpu().data.numpy())
+            Eq = torch.exp(q_samples - 1.)
+        elif measure == 'RKL':
+            Eq = q_samples - 1.
+        elif measure == 'H2':
+            Eq = torch.exp(q_samples) - 1.
+        elif measure == 'W1':
+            Eq = q_samples
+        else:
+            assert 1==2
+    
+        if average:
+            return Eq.mean()
+        else:
+            return Eq
+    
+    def get_positive_expectation(self, p_samples, measure, average=True):
+    
+        log_2 = math.log(2.)
+    
+        if measure == 'GAN':
+            Ep = - F.softplus(-p_samples)
+        elif measure == 'JSD':
+            Ep = log_2 - F.softplus(-p_samples)  # Note JSD will be shifted
+            #Ep =  - F.softplus(-p_samples)
+        elif measure == 'X2':
+            Ep = p_samples ** 2
+        elif measure == 'KL':
+            Ep = p_samples
+        
+        elif measure == 'RKL':
+        
+            Ep = -torch.exp(-p_samples)
+        elif measure == 'DV':
+            Ep = p_samples
+        elif measure == 'H2':
+            Ep = 1. - torch.exp(-p_samples)
+        elif measure == 'W1':
+            Ep = p_samples
+        else:
+            assert 1==2
+    
+        if average:
+            return Ep.mean()
+        else:
+            return Ep
+
+
+    def fenchel_dual_loss(self, l, m, measure=None):
+        '''Computes the f-divergence distance between positive and negative joint distributions.
+        Note that vectors should be sent as 1x1.
+        Divergences supported are Jensen-Shannon `JSD`, `GAN` (equivalent to JSD),
+        Squared Hellinger `H2`, Chi-squeared `X2`, `KL`, and reverse KL `RKL`.
+        Args:
+            l: Local feature map.
+            m: Multiple globals feature map.
+            measure: f-divergence measure.
+        Returns:
+            torch.Tensor: Loss.
+        '''
+        N, units = l.size()
+    
+        # Outer product, we want a N x N x n_local x n_multi tensor.
+        u = torch.mm(m, l.t())
+        
+        # Since we have a big tensor with both positive and negative samples, we need to mask.
+        mask = torch.eye(N).to(l.device)
+        n_mask = 1 - mask
+        # Compute the positive and negative score. Average the spatial locations.
+        E_pos = get_positive_expectation(u, measure, average=False)
+        E_neg = get_negative_expectation(u, measure, average=False)
+        MI = (E_pos * mask).sum(1) #- (E_neg * n_mask).sum(1)/(N-1)
+        # Mask positive and negative terms for positive and negative parts of loss
+        E_pos_term = (E_pos * mask).sum(1)
+        E_neg_term = (E_neg * n_mask).sum(1) /(N-1)
+        loss = E_neg_term - E_pos_term
+        return loss,MI
+
+class NEW_MINE(nn.Module):
+    def __init__(self,state_size,com_a_size,measure ="JSD"):
+        super(NEW_MINE, self).__init__()
+        self.MI = MI_estimator()
+        self.measure = measure
+        self.com_a_size = com_a_size
+        self.state_size = state_size
+        self.nonlinearity = F.leaky_relu
+        self.l1 = nn.Linear(self.state_size, 32)
+        self.l2 = nn.Linear(self.com_a_size, 32)
+
+    def forward(self, state, joint_action,params =None):
+        em_1 = self.nonlinearity(self.l1(state),inplace=True)
+        em_2 = self.nonlinearity(self.l2(joint_action),inplace=True)
+        two_agent_embedding = [em_1,em_2]
+        loss, MI = self.MI.fenchel_dual_loss(two_agent_embedding[0], two_agent_embedding[1], measure=self.measure)
+        return loss ,MI
+######################################################################################################
+
+
 class PBTAgent(object):
     """An agent that can be saved and loaded and all and the main data it contains is the self.model
     
