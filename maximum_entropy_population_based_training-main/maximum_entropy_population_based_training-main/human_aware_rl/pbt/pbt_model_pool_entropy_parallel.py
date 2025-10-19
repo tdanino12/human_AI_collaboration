@@ -161,6 +161,15 @@ class PBTAgent(object):
         with tf.device('/device:GPU:{}'.format(self.params["GPU_ID"])):
             self.model = model if model is not None else create_model(gym_env, agent_name, **start_params)
 
+
+        ########################################################################
+        '''
+        Creating an object for the MI estimator
+        '''
+        self.total_action = 5
+        self.mine_policy=NEW_MINE(self.total_action,self.total_action).to(self.device)
+        ########################################################################
+    
     @property
     def num_ppo_runs(self):
         return self.logs["num_ppo_runs"]
