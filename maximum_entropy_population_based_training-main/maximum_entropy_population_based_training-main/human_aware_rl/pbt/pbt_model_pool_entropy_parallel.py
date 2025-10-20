@@ -148,7 +148,7 @@ class PBTAgent(object):
     and train them together.
     """
     
-    def __init__(self, agent_name, start_params, start_logs=None, model=None, gym_env=None):
+    def __init__(self, agent_name, start_params, start_logs=None, model=None, gym_env=None, population_class=""):
         self.params = start_params
         self.logs = start_logs if start_logs is not None else {
             "agent_name": agent_name,
@@ -160,15 +160,6 @@ class PBTAgent(object):
         self.logs["agent_name"] = agent_name if agent_name is not None else self.logs["agent_name"]
         with tf.device('/device:GPU:{}'.format(self.params["GPU_ID"])):
             self.model = model if model is not None else create_model(gym_env, agent_name, **start_params)
-
-
-        ########################################################################
-        '''
-        Creating an object for the MI estimator
-        '''
-        self.total_action = 5
-        self.mine_policy=NEW_MINE(self.total_action,self.total_action).to(self.device)
-        ########################################################################
     
     @property
     def num_ppo_runs(self):
@@ -526,7 +517,7 @@ def pbt_one_run(params, seed, population_type):
         pbt_agent_names = ['agent' + str(i) for i in range(population_size)]
         for i, agent_name in enumerate(pbt_agent_names):
             params["GAMMA"] = gamma_array[i]
-            agent = PBTAgent(agent_name, params, gym_env=gym_env)
+            agent = PBTAgent(agent_name, params, gym_env=gym_env, population_class=population_type)
             print(f'Initialized {agent_name}')    
             pbt_population.append(agent)
     else:
@@ -535,7 +526,7 @@ def pbt_one_run(params, seed, population_type):
         pbt_population = []
         pbt_agent_names = ['agent' + str(i) for i in range(population_size)]
         for agent_name in pbt_agent_names:
-            agent = PBTAgent(agent_name, params, gym_env=gym_env)
+            agent = PBTAgent(agent_name, params, gym_env=gym_env, population_class=population_type)
             print(f'Initialized {agent_name}')    
             pbt_population.append(agent)
     #######################################################################
@@ -548,6 +539,18 @@ def pbt_one_run(params, seed, population_type):
 
     # MAIN LOOP
 
+
+    ########################################################################
+    '''
+    Creating an object for the MI estimator
+    '''
+    total_action = 5
+    if(population_type == "socilizer"):
+        mine = NEW_MINE(total_action,total_action).to(self.device)
+    else:
+        mine = None
+    ########################################################################
+    
     def pbt_training():
         best_sparse_rew_avg = [-np.Inf] * population_size
 
@@ -615,7 +618,8 @@ def pbt_one_run(params, seed, population_type):
                 #######################################################################
                 #trajs = overcooked_env.get_rollouts(agent_pair, params["NUM_SELECTION_GAMES"], reward_shaping=reward_shaping_param)
                 # Added "population_type" and agent index (i) as inputs to the function.
-                trajs = overcooked_env.get_rollouts(agent_pair, params["NUM_SELECTION_GAMES"], reward_shaping=reward_shaping_param, population_class=population_type, agent_num=i)
+                trajs = overcooked_env.get_rollouts(agent_pair, params["NUM_SELECTION_GAMES"], 
+                                                    reward_shaping=reward_shaping_param, population_class=population_type, agent_num=i, MI_estimator =)
                 #######################################################################
                 
                 dense_rews, sparse_rews, lens = trajs["ep_returns"], trajs["ep_returns_sparse"], trajs["ep_lengths"]
@@ -646,7 +650,8 @@ def pbt_one_run(params, seed, population_type):
 def run_pbt(params):
     population_type = "achiever"
     population_type = "dominance"
-
+    population_type = "socilizer"
+    
     create_dir_if_not_exists(params["SAVE_DIR"])
     save_dict_to_file(params, params["SAVE_DIR"] + "config")
     for seed in params["SEEDS"]:
