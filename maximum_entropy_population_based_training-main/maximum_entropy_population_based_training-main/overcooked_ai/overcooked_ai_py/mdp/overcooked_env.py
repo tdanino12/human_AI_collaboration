@@ -287,7 +287,7 @@ class OvercookedEnv(object):
 
         # Converting to numpy arrays
         trajectories = {k: np.array(v) for k, v in trajectories.items()}
-        return trajectories
+        return trajectories, MI_loss
 
 
 class Overcooked(gym.Env):
