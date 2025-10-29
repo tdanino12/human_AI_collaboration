@@ -628,6 +628,20 @@ def pbt_one_run(params, seed, population_type):
                 trajs = overcooked_env.get_rollouts(agent_pair, params["NUM_SELECTION_GAMES"], 
                                                     reward_shaping=reward_shaping_param, population_class=population_type, agent_num=i, MUI_estimator =mine)
                 #######################################################################
+
+
+                #######################################################################
+                '''
+                If socalizer, train the MI classfier.
+                '''
+                if(population_type == "socilizer"):
+                    loss = pos_loaa.mean()
+                    loss_list.append(loss.cpu().data.numpy())
+                    Mi_loss.append(pos_MI.cpu().data.numpy())
+                    self.mine_optimizer.zero_grad()
+                    loss.backward()
+                    self.mine_optimizer.step()
+                #######################################################################
                 
                 dense_rews, sparse_rews, lens = trajs["ep_returns"], trajs["ep_returns_sparse"], trajs["ep_lengths"]
                 
