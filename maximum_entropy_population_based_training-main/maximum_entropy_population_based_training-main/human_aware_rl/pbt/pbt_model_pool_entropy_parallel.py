@@ -506,7 +506,7 @@ def pbt_one_run(params, seed, population_type):
     annealer = LinearAnnealer(horizon=params["REW_SHAPING_HORIZON"])
 
     #######################################################################
-    if(population_type=="achiever"):
+    if(population_type=="myopic"):
         '''
         Creating a population of agent that differ by their "GAMMA" parameter.
         '''
@@ -616,10 +616,17 @@ def pbt_one_run(params, seed, population_type):
                 agent_pair = AgentPair(pbt_agent.get_agent(), pbt_agent_other.get_agent())
                 
                 #######################################################################
+                '''
+                Call the "get_rollouts" function to run agent in the environment. 
+                We send to the customize "get_rollouts" function 3 additional parameters:
+                population_type: achiever, dominance, etc.
+                agent_num: a number that charatrize the agent, used to determine alpha_i (level of regularization)
+                MI_estimator: An MI estimator object used for the socalizer type
+                '''
                 #trajs = overcooked_env.get_rollouts(agent_pair, params["NUM_SELECTION_GAMES"], reward_shaping=reward_shaping_param)
                 # Added "population_type" and agent index (i) as inputs to the function.
                 trajs = overcooked_env.get_rollouts(agent_pair, params["NUM_SELECTION_GAMES"], 
-                                                    reward_shaping=reward_shaping_param, population_class=population_type, agent_num=i, MI_estimator =)
+                                                    reward_shaping=reward_shaping_param, population_class=population_type, agent_num=i, MI_estimator =mine)
                 #######################################################################
                 
                 dense_rews, sparse_rews, lens = trajs["ep_returns"], trajs["ep_returns_sparse"], trajs["ep_lengths"]
@@ -651,6 +658,7 @@ def run_pbt(params):
     population_type = "achiever"
     population_type = "dominance"
     population_type = "socilizer"
+    population_type = "myopic"
     
     create_dir_if_not_exists(params["SAVE_DIR"])
     save_dict_to_file(params, params["SAVE_DIR"] + "config")
