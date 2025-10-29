@@ -172,7 +172,7 @@ class OvercookedEnv(object):
             '''
             if(population_class=="socilizer"):
                 pos_loss, pos_MI = MUI_estimator(s_t,a_t)
-                r_t = r_t + pos_MI*0.001*agent_num
+                r_t = r_t + pos_MI*0.001*agent_num  # add th emutual information with some alpha_i constant
                 MI.append(pos_MI)
                 MI_loss.append(pos_loss)
             ###############################################################################
