@@ -158,10 +158,10 @@ class OvercookedEnv(object):
 
             s_tp1, r_t, done, info = self.step(a_t)
             ###############################################################################
-            if(population_class=="dominance"):
-                r_t = r_t - agent_num-0.01
+            if(population_class=="achiever"):
+                r_t = r_t - agent_num*0.01  # Penalty
                 if(a_t==4):  # if the agent performed interact action
-                    r_t = r_t + agent_num*0.02
+                    r_t = r_t + agent_num*0.02  
             ###############################################################################
             trajectory.append((s_t, a_t, r_t, done))
 
@@ -176,7 +176,7 @@ class OvercookedEnv(object):
 
         return np.array(trajectory), self.t, self.cumulative_sparse_rewards, self.cumulative_shaped_rewards
 
-    def get_rollouts(self, agent_pair, num_games, display=False, final_state=False, agent_idx=0, reward_shaping=0.0, display_until=np.Inf, info=True, population_class="dominance", agent_num=0):
+    def get_rollouts(self, agent_pair, num_games, display=False, final_state=False, agent_idx=0, reward_shaping=0.0, display_until=np.Inf, info=True, population_class="dominance", agent_num=0, MUI_estimator=None):
         """
         Simulate `num_games` number rollouts with the current agent_pair and returns processed 
         trajectories.
